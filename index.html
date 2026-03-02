@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOP Interaktif: Pengujian Bilangan Asam</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap');
+
+        :root {
+            --primary: #0f172a;      
+            --secondary: #2563eb;    
+            --accent: #06b6d4;       
+            --success: #10b981;      
+            --warning: #f59e0b;      
+            --danger: #ef4444;       
+            --locked-bg: #f1f5f9;
+            --locked-text: #94a3b8;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --border-color: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f8fafc;
+            background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+            background-size: 24px 24px;
+            margin: 0; padding: 0; color: #334155;
+            display: flex; height: 100vh; overflow: hidden;
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        .main-content { flex: 1; overflow-y: auto; padding: 40px; position: relative; scroll-behavior: smooth; }
+
+        /* HEADER & IDENTITAS MINIMALIS */
+        header {
+            max-width: 850px; margin: 0 auto 40px auto;
+            background: var(--glass-bg); backdrop-filter: blur(12px);
+            border: 1px solid white; border-radius: 20px;
+            padding: 30px; text-align: center;
+            box-shadow: 0 10px 30px -10px rgba(0,0,0,0.05);
+        }
+        .dept-label { font-size: 0.85rem; font-weight: 700; color: var(--secondary); text-transform: uppercase; letter-spacing: 2px; }
+        h1 { color: var(--primary); margin: 10px 0 5px 0; font-size: 2.2rem; font-weight: 700; }
+        .univ-text { font-size: 0.95rem; font-weight: 500; color: #64748b; margin-bottom: 20px; }
+        
+        /* Gaya Nama Minimalis */
+        .minimal-author {
+            display: inline-block;
+            font-size: 0.9rem;
+            color: #64748b;
+            background: #f1f5f9;
+            padding: 8px 20px;
+            border-radius: 50px;
+            border: 1px solid #e2e8f0;
+        }
+        .minimal-author strong { color: var(--primary); font-weight: 700; }
+        .minimal-author span { color: var(--accent); font-weight: 600; margin-left: 5px; }
+
+        /* PROGRESS BAR */
+        .progress-container { max-width: 850px; margin: 0 auto 40px auto; background: #e2e8f0; border-radius: 10px; height: 8px; overflow: hidden; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05); }
+        .progress-bar { height: 100%; background: linear-gradient(90deg, var(--secondary), var(--accent)); width: 0%; transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        /* FLOWCHART WRAPPER */
+        .flowchart-wrapper { max-width: 850px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; position: relative; padding-bottom: 60px; }
+
+        /* NODE */
+        .node {
+            background: white; border: 2px solid white; color: var(--primary);
+            padding: 15px 30px; border-radius: 12px; font-weight: 600; font-size: 1.05rem;
+            text-align: center; min-width: 320px; cursor: pointer;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+            position: relative; transition: all 0.3s ease; z-index: 2; margin-bottom: 50px;
+            display: flex; align-items: center; justify-content: center; gap: 15px;
+        }
+        .node i { font-size: 1.4rem; color: var(--secondary); transition: all 0.3s ease; }
+        .node:hover:not(.locked) { transform: translateY(-3px); box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.15); border-color: var(--secondary); }
+        .node.completed { background: var(--success); color: white; border-color: var(--success); }
+        .node.completed i { color: white; }
+        .node.active-next:not(.completed) { border-color: var(--accent); animation: pulse-border 2s infinite; }
+        
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0.4); }
+            70% { box-shadow: 0 0 0 15px rgba(6, 182, 212, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(6, 182, 212, 0); }
+        }
+
+        .node::after, .branch-wrapper::after { content: ''; position: absolute; width: 3px; height: 50px; background: linear-gradient(to bottom, var(--border-color), var(--border-color)); bottom: -52px; left: 50%; transform: translateX(-50%); z-index: 1; transition: background 0.5s ease; }
+        .node.completed::after { background: var(--success); }
+        .node:last-child::after { display: none; }
+        .node.start { background: var(--primary); color: white; border-radius: 50px; }
+        .node.start i { color: white; }
+        .node.end { background: var(--primary); color: white; border-radius: 50px; }
+
+        /* CABANG */
+        .branch-wrapper { display: flex; gap: 40px; position: relative; margin-bottom: 50px; z-index: 2; }
+        .branch-node { background: white; border: 2px solid white; color: var(--primary); padding: 15px 25px; border-radius: 12px; font-weight: 600; width: 140px; text-align: center; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); display: flex; flex-direction: column; align-items: center; gap: 8px; }
+        .branch-node i { font-size: 1.5rem; color: var(--secondary); }
+        .branch-node:hover:not(.locked) { transform: translateY(-3px); box-shadow: 0 20px 25px -5px rgba(37, 99, 235, 0.15); border-color: var(--secondary); }
+        .branch-node.completed { background: var(--success); color: white; border-color: var(--success); }
+        .branch-node.completed i { color: white; }
+        .branch-node.active-next:not(.completed) { border-color: var(--accent); animation: pulse-border 2s infinite; }
+        .branch-wrapper::before { content: ''; position: absolute; top: -25px; left: 25%; right: 25%; height: 3px; background-color: var(--border-color); z-index: 1; transition: background 0.5s ease; }
+        .branch-wrapper.completed-branch::before, .branch-wrapper.completed-branch::after { background-color: var(--success); }
+        .branch-node::before { content: ''; position: absolute; width: 3px; height: 25px; background-color: var(--border-color); top: -27px; left: 50%; transform: translateX(-50%); transition: background 0.5s ease; }
+        .branch-node.completed::before { background-color: var(--success); }
+
+        .locked, .branch-node.locked { background-color: var(--locked-bg) !important; color: var(--locked-text) !important; border-color: var(--border-color) !important; pointer-events: none; box-shadow: none !important; }
+        .locked i { color: var(--locked-text) !important; }
+
+        /* SIDE PANEL */
+        .side-panel { position: fixed; top: 0; right: -600px; width: 500px; height: 100vh; background: var(--glass-bg); backdrop-filter: blur(20px); box-shadow: -10px 0 30px rgba(0,0,0,0.1); border-left: 1px solid white; transition: right 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 1000; display: flex; flex-direction: column; }
+        .side-panel.open { right: 0; }
+        .panel-header { padding: 30px; background: transparent; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; }
+        .panel-header h2 { margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        .close-btn { background: #f1f5f9; border: none; width: 40px; height: 40px; border-radius: 50%; color: var(--primary); font-size: 1.2rem; cursor: pointer; transition: all 0.2s; display: flex; justify-content: center; align-items: center;}
+        .close-btn:hover { background: var(--danger); color: white; transform: rotate(90deg); }
+        .panel-content { padding: 30px; flex: 1; overflow-y: auto; }
+        .figure-box { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px; text-align: center; margin-bottom: 30px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .figure-icon { font-size: 3.5rem; color: var(--secondary); margin-bottom: 15px; }
+        .figure-caption { font-size: 0.9rem; font-style: italic; color: #64748b; font-weight: 500; }
+        .panel-content h4 { color: var(--secondary); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 15px 0; display: flex; align-items: center; gap: 8px; }
+        .panel-content p { font-size: 1.05rem; line-height: 1.7; margin-bottom: 25px; color: #475569; }
+        .alert { padding: 15px 20px; border-radius: 10px; font-size: 0.95rem; margin-bottom: 25px; line-height: 1.6; display: flex; gap: 15px; align-items: flex-start; }
+        .alert i { font-size: 1.2rem; margin-top: 2px; }
+        .alert-warning { background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; }
+        .alert-warning i { color: #ea580c; }
+        .alert-info { background: #f0fdfa; border: 1px solid #ccfbf1; color: #115e59; }
+        .alert-info i { color: #0d9488; }
+        .alert ul { margin: 8px 0 0 0; padding-left: 20px; }
+        .formula-container { background: white; border: 1px solid var(--border-color); border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .formula-box { font-family: 'Times New Roman', serif; font-size: 1.4rem; text-align: center; margin-bottom: 20px; color: var(--primary); display: flex; justify-content: center; align-items: center; gap: 10px;}
+        .fraction { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; }
+        .numerator { border-bottom: 2px solid var(--primary); padding: 0 8px 5px 8px; }
+        .denominator { padding: 5px 8px 0 8px; }
+        .var-list { font-size: 0.9rem; font-family: 'Plus Jakarta Sans', sans-serif; text-align: left; color: #475569; line-height: 1.8; background: #f8fafc; padding: 15px; border-radius: 8px;}
+        .backdrop { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 999; opacity: 0; transition: opacity 0.3s; }
+        .backdrop.open { display: block; opacity: 1; }
+
+        @media (max-width: 768px) {
+            .side-panel { width: 100%; right: -100%; }
+            .node { min-width: 260px; font-size: 0.95rem; }
+            .branch-wrapper { gap: 20px; }
+            .branch-node { width: 110px; font-size: 0.9rem; }
+            header { padding: 20px; }
+            h1 { font-size: 1.5rem; }
+            .minimal-author { font-size: 0.8rem; padding: 6px 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-content" id="mainContent">
+        <header>
+            <div class="dept-label"><i class="fa-solid fa-flask"></i> Laboratorium Analitik Terpadu</div>
+            <h1>SOP Titrasi Alkalimetri</h1>
+            <div class="univ-text">Penentuan Bilangan Asam pada Sampel Minyak</div>
+            
+            <div class="minimal-author">
+                Disusun oleh: <strong>Dian Okti Sulistiowati</strong> (23030234099) &bull; <span>Kimia, Universitas Surabaya</span>
+            </div>
+        </header>
+
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+        <div class="flowchart-wrapper">
+            <div class="node start active-next" id="step-0" onclick="unlockStep1()"><i class="fa-solid fa-power-off"></i> MULAI PENGUJIAN</div>
+            <div class="branch-wrapper locked" id="step-1-container">
+                <div class="branch-node locked" id="step-1a" onclick="openPanel('step-1a', null)"><i class="fa-solid fa-microscope"></i> Persiapan<br>Alat</div>
+                <div class="branch-node locked" id="step-1b" onclick="openPanel('step-1b', null)"><i class="fa-solid fa-vial"></i> Persiapan<br>Bahan</div>
+            </div>
+            <div class="node locked" id="step-2" onclick="openPanel('step-2', 'step-3')"><i class="fa-solid fa-scale-balanced"></i> Penimbangan Sampel</div>
+            <div class="node locked" id="step-3" onclick="openPanel('step-3', 'step-4')"><i class="fa-solid fa-droplet"></i> Pelarutan dengan Etanol</div>
+            <div class="node locked" id="step-4" onclick="openPanel('step-4', 'step-5')"><i class="fa-solid fa-eye-dropper"></i> Penambahan Indikator (PP)</div>
+            <div class="node locked" id="step-5" onclick="openPanel('step-5', 'step-6')"><i class="fa-solid fa-fill-drip"></i> Titrasi Alkalimetri (KOH)</div>
+            <div class="node locked" id="step-6" onclick="openPanel('step-6', 'step-7')"><i class="fa-solid fa-bullseye"></i> Titik Akhir Titrasi</div>
+            <div class="node locked" id="step-7" onclick="openPanel('step-7', 'step-8')"><i class="fa-solid fa-calculator"></i> Kalkulasi Bilangan Asam</div>
+            <div class="node locked" id="step-8" onclick="openPanel('step-8', 'step-9')"><i class="fa-solid fa-chart-line"></i> Interpretasi Hasil Analisis</div>
+            <div class="node end locked" id="step-9"><i class="fa-solid fa-check-double"></i> ANALISIS SELESAI</div>
+        </div>
+    </div>
+
+    <div class="backdrop" id="backdrop" onclick="closePanel()"></div>
+
+    <div class="side-panel" id="sidePanel">
+        <div class="panel-header">
+            <h2 id="panelTitle"><i class="fa-solid fa-flask"></i> Tahap Pengujian</h2>
+            <button class="close-btn" onclick="closePanel()"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="panel-content">
+            <div class="figure-box">
+                <div class="figure-icon" id="panelIcon"><i class="fa-solid fa-image"></i></div>
+                <div id="panelImgText" class="figure-caption">Visualisasi Alat/Bahan</div>
+            </div>
+            <div id="panelBody"></div>
+        </div>
+    </div>
+
+    <script>
+        const totalSteps = 8;
+        let unlockedSteps = new Set(['step-0']);
+
+        const dataAkademik = {
+            'step-1a': {
+                title: 'Persiapan Instrumen', icon: '<i class="fa-solid fa-microscope"></i>',
+                imgText: 'Gambar 1. Set Buret, Erlenmeyer, dan Neraca Analitik.',
+                body: `<h4><i class="fa-solid fa-clipboard-check"></i> Prinsip Kerja</h4>
+                       <p>Menyiapkan instrumen gelas kuantitatif dan neraca presisi yang telah diverifikasi kelayakannya untuk meminimalisir ralat sistematik.</p>
+                       <div class="alert alert-warning">
+                           <i class="fa-solid fa-triangle-exclamation"></i>
+                           <div><strong>Perhatian Kritis:</strong>
+                               <ul>
+                                   <li>Pastikan buret bebas gelembung udara pada ujung kran.</li>
+                                   <li>Neraca analitik harus dalam keadaan <em>waterpass</em> sebelum zeroing.</li>
+                               </ul>
+                           </div>
+                       </div>`
+            },
+            'step-1b': {
+                title: 'Persiapan Reagensia', icon: '<i class="fa-solid fa-vial"></i>',
+                imgText: 'Gambar 2. Larutan KOH baku, Etanol netral, Indikator PP.',
+                body: `<h4><i class="fa-solid fa-flask-vial"></i> Spesifikasi Reagen</h4>
+                       <p>Memastikan kemurnian dan konsentrasi titran serta pelarut sesuai metode standar.</p>
+                       <div class="alert alert-warning">
+                           <i class="fa-solid fa-triangle-exclamation"></i>
+                           <div><strong>Peringatan Mutu:</strong>
+                               <ul>
+                                   <li>Titran KOH (0,1 N) <strong>wajib distandarisasi</strong> menggunakan Asam Oksalat.</li>
+                                   <li>Etanol harus dinetralkan agar tidak menyebabkan bias titrasi karena sifat asam bawaan pelarut.</li>
+                               </ul>
+                           </div>
+                       </div>`
+            },
+            'step-2': {
+                title: 'Penimbangan Sampel', icon: '<i class="fa-solid fa-scale-balanced"></i>',
+                imgText: 'Gambar 3. Penimbangan sampel minyak ke dalam Erlenmeyer.',
+                body: `<h4><i class="fa-solid fa-list-ol"></i> Prosedur Kerja</h4>
+                       <p>Menimbang sejumlah sampel (Umumnya ± 1,0 - 5,0 gram) secara kuantitatif ke dalam labu Erlenmeyer 250 mL.</p>
+                       <div class="alert alert-info">
+                           <i class="fa-solid fa-circle-info"></i>
+                           <div><strong>Parameter Kritis:</strong><br>
+                           Massa sampel dicatat sebagai variabel <strong>(W)</strong> dengan ketelitian 4 angka desimal (0,0001 g).</div>
+                       </div>`
+            },
+            'step-3': {
+                title: 'Pelarutan Sampel', icon: '<i class="fa-solid fa-droplet"></i>',
+                imgText: 'Gambar 4. Penambahan 50 mL etanol netral panas.',
+                body: `<h4><i class="fa-solid fa-atom"></i> Prinsip Kelarutan</h4>
+                       <p>Minyak bersifat non-polar, sedangkan KOH larut dalam air (polar). Etanol netral ditambahkan untuk mengekstraksi Asam Lemak Bebas (ALB) agar dapat bereaksi secara homogen.</p>
+                       <p>Gunakan <em>magnetic stirrer</em> atau goyangkan perlahan hingga sampel melarut sempurna.</p>`
+            },
+            'step-4': {
+                title: 'Indikator Fenolftalein', icon: '<i class="fa-solid fa-eye-dropper"></i>',
+                imgText: 'Gambar 5. Penambahan 3 tetes Indikator PP 1%.',
+                body: `<h4><i class="fa-solid fa-tint"></i> Kimia Indikator</h4>
+                       <p>Indikator Fenolftalein (PP) ditambahkan ke dalam larutan analit. Trayek pH indikator PP berada pada rentang <strong>8.2 (tidak berwarna) hingga 10.0 (merah muda)</strong>.</p>`
+            },
+            'step-5': {
+                title: 'Titrasi Alkalimetri', icon: '<i class="fa-solid fa-fill-drip"></i>',
+                imgText: 'Gambar 6. Proses penitrasian drop-by-drop.',
+                body: `<h4><i class="fa-solid fa-bolt"></i> Reaksi Netralisasi</h4>
+                       <p>Larutan dititrasi perlahan menggunakan KOH 0,1 N tersandarisasi sambil terus dihomogenkan.</p>
+                       <div class="alert alert-info">
+                           <i class="fa-solid fa-book-journal-whills"></i>
+                           <div><strong>Persamaan Reaksi Stoikiometri:</strong><br>
+                           R-COOH<sub>(aq)</sub> + KOH<sub>(aq)</sub> &rarr; R-COOK<sub>(aq)</sub> + H<sub>2</sub>O<sub>(l)</sub></div>
+                       </div>`
+            },
+            'step-6': {
+                title: 'Titik Akhir Titrasi', icon: '<i class="fa-solid fa-bullseye"></i>',
+                imgText: 'Gambar 7. Perubahan warna menjadi merah muda stabil.',
+                body: `<h4><i class="fa-solid fa-flag-checkered"></i> Kriteria End Point</h4>
+                       <p>Titrasi dihentikan seketika saat terjadi perubahan warna larutan dari bening/kekuningan menjadi <strong>merah muda pucat yang persisten</strong> (stabil minimal 30 detik).</p>
+                       <div class="alert alert-warning">
+                           <i class="fa-solid fa-triangle-exclamation"></i>
+                           <div><strong>Potensi Ralat:</strong>
+                               <ul>
+                                   <li><em>Over-titration</em> (warna terlampau pekat).</li>
+                                   <li>Kesalahan paralaks saat membaca meniskus buret.</li>
+                               </ul>
+                           </div>
+                       </div>`
+            },
+            'step-7': {
+                title: 'Kalkulasi Bilangan Asam', icon: '<i class="fa-solid fa-calculator"></i>',
+                imgText: 'Gambar 8. Penurunan rumus kuantitatif.',
+                body: `<h4><i class="fa-solid fa-square-root-variable"></i> Rumus Ekivalensi</h4>
+                       <div class="formula-container">
+                           <div class="formula-box">
+                               Bilangan Asam = 
+                               <div class="fraction">
+                                   <div class="numerator">V &times; N &times; 56,1</div>
+                                   <div class="denominator">W</div>
+                               </div>
+                           </div>
+                           <div class="var-list">
+                               <strong>Keterangan:</strong><br>
+                               <i class="fa-solid fa-caret-right"></i> <strong>V</strong> = Volume titran KOH terpakai (mL)<br>
+                               <i class="fa-solid fa-caret-right"></i> <strong>N</strong> = Normalitas presisi KOH (N)<br>
+                               <i class="fa-solid fa-caret-right"></i> <strong>W</strong> = Massa sampel (gram)<br>
+                               <i class="fa-solid fa-caret-right"></i> <strong>56,1</strong> = Berat Molekul KOH (mg/mEq)
+                           </div>
+                       </div>`
+            },
+            'step-8': {
+                title: 'Interpretasi Data', icon: '<i class="fa-solid fa-chart-line"></i>',
+                imgText: 'Gambar 9. Kesesuaian mutu SNI.',
+                body: `<h4><i class="fa-solid fa-magnifying-glass-chart"></i> Analisis Kesimpulan</h4>
+                       <p>Bilangan Asam merepresentasikan jumlah miligram KOH yang dibutuhkan untuk menetralkan asam lemak bebas dalam 1 gram minyak.</p>
+                       <p><strong>Signifikansi:</strong> Semakin tinggi nilainya, semakin parah tingkat hidrolisis trigliserida (ketengikan). Ini menandakan penurunan kualitas minyak yang tidak memenuhi standar mutu.</p>`
+            }
+        };
+
+        let isAlatDone = false;
+        let isBahanDone = false;
+
+        function updateProgress(stepNum) {
+            unlockedSteps.add(stepNum);
+            let effectiveStep = 0;
+            if (unlockedSteps.has('step-1a') && unlockedSteps.has('step-1b')) effectiveStep = 1;
+            if (unlockedSteps.has('step-2')) effectiveStep = 2;
+            if (unlockedSteps.has('step-3')) effectiveStep = 3;
+            if (unlockedSteps.has('step-4')) effectiveStep = 4;
+            if (unlockedSteps.has('step-5')) effectiveStep = 5;
+            if (unlockedSteps.has('step-6')) effectiveStep = 6;
+            if (unlockedSteps.has('step-7')) effectiveStep = 7;
+            if (unlockedSteps.has('step-8')) effectiveStep = 8;
+
+            const percentage = (effectiveStep / totalSteps) * 100;
+            document.getElementById('progressBar').style.width = percentage + '%';
+        }
+
+        function removeActivePulse(id) {
+            const el = document.getElementById(id);
+            if(el) el.classList.remove('active-next');
+        }
+
+        function setCompleted(id) {
+            const el = document.getElementById(id);
+            if(el) {
+                el.classList.add('completed');
+                el.classList.remove('active-next');
+                el.innerHTML = el.innerHTML.replace(/fa-[a-z-]+/g, 'fa-check');
+            }
+        }
+
+        function unlockStep1() {
+            setCompleted('step-0');
+            document.getElementById('step-1-container').classList.remove('locked');
+            
+            const step1a = document.getElementById('step-1a');
+            const step1b = document.getElementById('step-1b');
+            step1a.classList.remove('locked');
+            step1a.classList.add('active-next');
+            step1b.classList.remove('locked');
+            step1b.classList.add('active-next');
+            
+            setTimeout(() => { document.getElementById('step-1-container').scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 300);
+        }
+
+        function unlockNext(nextId, currentId) {
+            if (nextId) {
+                const nextEl = document.getElementById(nextId);
+                if (nextEl && nextEl.classList.contains('locked')) {
+                    nextEl.classList.remove('locked');
+                    nextEl.classList.add('active-next');
+                    
+                    if(currentId !== 'step-8') {
+                        setTimeout(() => { nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 400);
+                    }
+                }
+            }
+        }
+
+        function openPanel(currentId, nextId) {
+            const el = document.getElementById(currentId);
+            if (el.classList.contains('locked')) return;
+
+            const data = dataAkademik[currentId];
+            if(data) {
+                document.getElementById('panelTitle').innerHTML = data.title;
+                document.getElementById('panelIcon').innerHTML = data.icon;
+                document.getElementById('panelImgText').innerHTML = data.imgText;
+                document.getElementById('panelBody').innerHTML = data.body;
+                
+                document.getElementById('sidePanel').classList.add('open');
+                setTimeout(() => { document.getElementById('backdrop').classList.add('open'); }, 10);
+            }
+
+            updateProgress(currentId);
+
+            if (currentId === 'step-1a') { isAlatDone = true; setCompleted('step-1a'); } 
+            else if (currentId === 'step-1b') { isBahanDone = true; setCompleted('step-1b'); }
+
+            if (currentId === 'step-1a' || currentId === 'step-1b') {
+                if (isAlatDone && isBahanDone) {
+                    document.getElementById('step-1-container').classList.add('completed-branch');
+                    unlockNext('step-2', 'step-1-container');
+                }
+            } else {
+                setCompleted(currentId);
+                unlockNext(nextId, currentId);
+            }
+            
+            if (currentId === 'step-8') {
+                const step9 = document.getElementById('step-9');
+                step9.classList.remove('locked');
+                step9.classList.add('completed');
+                setTimeout(() => { step9.scrollIntoView({ behavior: 'smooth', block: 'center' }); }, 400);
+            }
+        }
+
+        function closePanel() {
+            document.getElementById('sidePanel').classList.remove('open');
+            document.getElementById('backdrop').classList.remove('open');
+        }
+    </script>
+</body>
+</html>
